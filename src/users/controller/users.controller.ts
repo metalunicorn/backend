@@ -14,6 +14,8 @@ import { DeleteResult, UpdateResult } from 'typeorm';
 import { User } from '../models/user.interface';
 import { UsersService } from '../service/users.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-guard';
+import { hasRoles } from '../../auth/decorator/roles.decorator';
+import { RolesGuard } from '../../auth/guards/roles.guard';
 
 @Controller('users')
 export class UsersController {
@@ -36,7 +38,9 @@ export class UsersController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @hasRoles('Admin')
+  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   findAll(): Observable<Partial<User>[]> {
     return this.userService.findAll();
