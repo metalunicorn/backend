@@ -9,13 +9,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { catchError, map, Observable, of } from 'rxjs';
-import { LocalAuthGuard } from '../../auth/guards/local-auth.guard';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { User } from '../models/user.interface';
 import { UsersService } from '../service/users.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-guard';
 import { hasRoles } from '../../auth/decorator/roles.decorator';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { UserRole } from '../models/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -38,8 +38,7 @@ export class UsersController {
     );
   }
 
-  @hasRoles('Admin')
-  // @UseGuards(JwtAuthGuard)
+  @hasRoles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   findAll(): Observable<Partial<User>[]> {
@@ -58,6 +57,16 @@ export class UsersController {
 
   @Patch(':id')
   updateOne(
+    @Param('id') id: number,
+    @Body() user: User,
+  ): Observable<UpdateResult> {
+    return this.userService.updateOne(id, user);
+  }
+
+  @hasRoles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Patch(':id/roles')
+  updateRole(
     @Param('id') id: number,
     @Body() user: User,
   ): Observable<UpdateResult> {

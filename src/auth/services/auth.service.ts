@@ -10,7 +10,7 @@ export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
   generateJwt(payload: User): Observable<string> {
-    console.log('payload', payload);
+    
     return from(this.jwtService.signAsync({ user: payload }));
   }
 
