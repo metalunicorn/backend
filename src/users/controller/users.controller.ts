@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { catchError, map, Observable, of } from 'rxjs';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-guard';
 import { hasRoles } from '../../auth/decorator/roles.decorator';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { UserRole } from '../models/user.entity';
+import { Paginator } from '../paginate';
 
 @Controller('users')
 export class UsersController {
@@ -38,11 +40,15 @@ export class UsersController {
     );
   }
 
-  @hasRoles(UserRole.ADMIN)
+  @hasRoles(UserRole.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
-  findAll(): Observable<Partial<User>[]> {
-    return this.userService.findAll();
+  findAll(@Request() request: any): Observable<Paginator<User>> {
+    console.log(request.query);
+    return this.userService.paginate({
+      limit: request?.query?.hasOwnProperty('limit') ? request.query.limit : 10,
+      page: request?.query?.hasOwnProperty('page') ? request?.query?.page : 0,
+    });
   }
 
   @Get(':id')

@@ -1,10 +1,11 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { from, Observable, switchMap, map, catchError } from 'rxjs';
+import { from, Observable, switchMap, map, catchError, of } from 'rxjs';
 import { AuthService } from '../../auth/services/auth.service';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from '../models/user.entity';
 import { User } from '../models/user.interface';
+import { PaginationOptions, Paginator } from '../paginate';
 
 @Injectable()
 export class UsersService {
@@ -104,6 +105,24 @@ export class UsersService {
         where: {
           email: email,
         },
+      }),
+    );
+  }
+
+  paginate(options: PaginationOptions): Observable<Paginator<User>> {
+    return from(
+      this.usersRepository.findAndCount({
+        take: options.limit,
+        skip: options.page,
+      }),
+    ).pipe(
+      map((user: [User[], number]) => {
+        const [results, total] = user;
+        const pag = new Paginator<User>({
+          results,
+          total,
+        });
+        return pag;
       }),
     );
   }
